@@ -1,0 +1,6 @@
+Curses UI
+Removed Scan for peers
+New progress bar
+Replaced MD5 with SHA-256
+Shows detailed report of failed integrity checks
+Proper Readme
