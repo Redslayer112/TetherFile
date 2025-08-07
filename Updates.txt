@@ -1,6 +1,5 @@
-Curses UI
-Removed Scan for peers
-New progress bar
-Replaced MD5 with SHA-256
-Shows detailed report of failed integrity checks
-Proper Readme
+Changed to modular setup
+Update `draw_box()` — remove the sides
+Remove auto-selection of network interfaces menu
+Entering receive mode directly after main menu selection
+📏 File size display — human-readable formats (B, KB, MB, GB, TB)

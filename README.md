@@ -49,7 +49,7 @@ python3 main.py
 ```
 
 ## 🧭 How It Works
-Connect both laptops with a LAN cable
+Connect both laptops with a LAN cable / Also works on same wifi network
 
 Run main.py on both systems
 
@@ -57,7 +57,7 @@ On receiver, choose 📥 Start Receiving Mode
 
 On sender, pick 📤 Send File or 📁 Send Folder, enter receiver's IP
 
-Watch the smooth progress UI until done!
+Wait for the transfer to complete, tracking the progress with the smooth UI!
 
 📁 All received content is stored in received_files/
 
@@ -65,9 +65,12 @@ Watch the smooth progress UI until done!
 ## 📂 Project Structure
 ```bash
 📁 tetherfile/
-├── main.py              # Main application
+├── main.py              # Main application entry point
 ├── README.md            # You're reading it
-├── Updates.txt          # Features Updated in this version
+├── Updates.txt          # Features updated in this version
+├── transfer.py          # Handles file transfer logic
+├── curses_ui.py         # UI management with curses
+├── progress.py          # Progress tracking utilities
 └── received_files/      # Auto-created on receive
 ```
 
