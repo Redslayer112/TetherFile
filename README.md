@@ -18,7 +18,6 @@ Can also trasfer over **Wifi LAN**.
 - 🎨 **Curses UI**: Smooth terminal-based UI with color, animations & boxes
 - 📦 **SHA-256 validation** ensures integrity on both ends
 - 📄 Shows transfer stats: speed, ETA, size, and live progress bar
-- 🧠 Auto-detects IP interfaces and supports **manual override**
 - 🧾 Receives files into `received_files/` folder (auto-created)
 - 🧪 Modular design: future extensions like USB-C, Bluetooth, local Wi-Fi Direct coming soon
 - 💥 Cross-platform (tested on Linux & Windows)
