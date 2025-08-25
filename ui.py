@@ -39,7 +39,19 @@ class CursesUI:
         self.height, self.width = self.stdscr.getmaxyx()
         self.init_colors()
 
+    def clear_terminal_buffer(self):
+        """Clear terminal including scrollback buffer"""
+        import os
+        if os.name == 'posix':  # Unix/Linux/macOS
+            # Send escape sequence to clear scrollback buffer
+            self.stdscr.addstr(0, 0, '\033[3J\033[2J\033[H')
+        self.stdscr.erase()
+        self.stdscr.refresh()
+
     def draw_header(self, title):
+        # Use complete terminal clearing for headers
+        self.clear_terminal_buffer()
+        
         self.stdscr.attron(self.colors['header'])
         header_text = f" {title} "
         padding = (self.width - len(header_text)) // 2
@@ -70,8 +82,6 @@ class CursesUI:
             self.stdscr.attron(curses.A_BOLD)
             self.stdscr.addstr(y + 1, x, "═" * width)
             self.stdscr.attroff(curses.A_BOLD)
-
-
 
     def draw_progress_bar(self, y, x, width, progress, title="", color='info'):
         filled = int(progress * (width - 2))
@@ -115,11 +125,47 @@ class CursesUI:
 
         return input_str
 
+    def get_single_key(self, y, x, prompt, valid_keys=None, color='info'):
+        """Get a single keypress without requiring Enter"""
+        self.print_colored(y, x, prompt, color)
+        self.stdscr.refresh()
+        
+        # Clear input buffer first
+        self.stdscr.timeout(10)
+        while self.stdscr.getch() != -1:
+            pass
+        self.stdscr.timeout(-1)  # Reset to blocking
+        
+        while True:
+            key = self.stdscr.getch()
+            
+            if key == -1:  # Timeout or error
+                continue
+            
+            # Convert to character if it's a regular key
+            if 32 <= key <= 126:  # Printable ASCII range
+                char = chr(key)
+                
+                # If valid_keys specified, check if key is valid
+                if valid_keys is None or char in valid_keys:
+                    return char
+            
+            # Handle special keys if needed (like Escape, etc.)
+            elif key == 27:  # Escape key
+                return 'ESC'
+            elif key == ord('\n') or key == ord('\r'):
+                return 'ENTER'
+
     def show_message(self, message, color='info', duration=2):
         msg_y = self.height - 3
+        # Clear the message line completely before displaying new message
         self.stdscr.move(msg_y, 0)
         self.stdscr.clrtoeol()
         self.print_colored(msg_y, 2, message, color)
         self.stdscr.refresh()
         if duration > 0:
             time.sleep(duration)
+            # Clear the message after displaying it
+            self.stdscr.move(msg_y, 0)
+            self.stdscr.clrtoeol()
+            self.stdscr.refresh()

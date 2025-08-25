@@ -1,5 +1,6 @@
-Changed to modular setup
-Update `draw_box()` — remove the sides
-Remove auto-selection of network interfaces menu
-Entering receive mode directly after main menu selection
-📏 File size display — human-readable formats (B, KB, MB, GB, TB)
+Cleaned up and optimized code to be more modular.
+Other UI and error handling enhancements.
+User's choice for hash algorithm (SHA-256, MD5, etc.)
+receive logic loophole error fixed.
+ctrl + c termination handler added.
+Advanced network adapter selection - psutil.
