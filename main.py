@@ -147,7 +147,7 @@ def ip_setup(ui, app_state):
 def main_menu(ui, app_state):
     """Main application menu"""
     while True:
-        ui.draw_header("🔗 LAN File Transfer - Direct Connection")
+        ui.draw_header("🔗 Tetherfile - File Transfer Utility")
         ui.print_colored(ui.height - 2, 0, "═" * (ui.width - 1), 'highlight')
 
         if app_state['local_ip']:
