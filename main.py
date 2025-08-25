@@ -1,5 +1,4 @@
 import curses
-import sys
 import signal
 import threading
 from ui import CursesUI
@@ -267,7 +266,7 @@ def receive_mode(ui, app_state):
     ui.stdscr.clear()
     ui.draw_header("📥 Receive Mode Active")
     ui.print_colored(4, 2, f"🎯 Listening on {app_state['local_ip']}:{PORT}", 'info')
-    ui.print_colored(5, 2, f"💾 Files will be saved in the 'received_files' folder.", 'info')
+    ui.print_colored(5, 2, "💾 Files will be saved in the 'received_files' folder.", 'info')
     ui.print_colored(6, 2, "🔗 Ensure sender uses this IP to connect.", 'warning')
     ui.print_colored(8, 2, "🔛 Starting server... Press 'Q' to stop.", 'highlight')
     ui.stdscr.refresh()
@@ -299,7 +298,7 @@ def receive_mode(ui, app_state):
                 ui.stdscr.clear()
                 ui.draw_header("📥 Receive Mode Active")
                 ui.print_colored(4, 2, f"🎯 Listening on {app_state['local_ip']}:{PORT}", 'info')
-                ui.print_colored(5, 2, f"💾 Files will be saved in the 'received_files' folder.", 'info')
+                ui.print_colored(5, 2, "💾 Files will be saved in the 'received_files' folder.", 'info')
                 ui.print_colored(6, 2, "🔗 Ensure sender uses this IP to connect.", 'warning')
                 ui.print_colored(8, 2, "🔛 Server running... Press 'Q' to stop.", 'highlight')
                 ui.stdscr.refresh()

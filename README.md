@@ -27,9 +27,7 @@ Every file transfer includes SHA-256 checksum verification to ensure data integr
 Automatically discovers and categorizes network interfaces:
 - 📶 **WiFi Networks** - Wireless adapters and connections
 - 🔌 **Ethernet Networks** - Wired network adapters
-- 🔌 **USB Networks** - USB-to-Ethernet adapters
 - 💻 **Virtual Networks** - VMware, VirtualBox, Docker interfaces
-- 📱 **Mobile Networks** - Bluetooth PAN, mobile hotspots
 
 ---
 

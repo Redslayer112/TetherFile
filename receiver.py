@@ -1,10 +1,7 @@
-"""File and directory receiving functionality"""
-
 import socket
 import json
 import struct
 import threading
-import signal
 import os
 from network import create_server_socket
 from utils import calculate_file_hash, ensure_directory, format_size
