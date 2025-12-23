@@ -1,6 +1,6 @@
 import time
 from datetime import timedelta
-from utils import format_size
+from core.utils import format_size
 
 class ProgressTracker:
     def __init__(self, total, description="Progress", ui=None):

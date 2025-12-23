@@ -1,0 +1,21 @@
+{
+    "PORT": 8888,
+    "BUFFER_SIZE": 65536,
+    "HASH_CHUNK_SIZE": 65536,
+    "SERVER_TIMEOUT": 2.0,
+    "RECEIVED_DIR": "received_files",
+    "HASH_ALGORITHM": "sha256",
+    "SKIP_HASH_VERIFICATION": false,
+    "TRANSFER_TYPES": {
+        "FILE": "file",
+        "DIRECTORY": "directory"
+    },
+    "CONNECTION_TIMEOUT": 120,
+    "KEEPALIVE_ENABLE": true,
+    "RETRY_ATTEMPTS": 3,
+    "RETRY_DELAY": 2,
+    "MAX_FILE_SIZE_MB": 1024,
+    "MAX_DIRECTORY_FILES": 800,
+    "PROGRESS_UPDATE_INTERVAL": 0.1
+}
+

@@ -1,6 +1,6 @@
-Cleaned up and optimized code to be more modular.
-Other UI and error handling enhancements.
-User's choice for hash algorithm (SHA-256, MD5, etc.)
-receive logic loophole error fixed.
-ctrl + c termination handler added.
-Advanced network adapter selection - psutil.
+Different Hashing on client and server conditions case handeled.
+converted to using json for transfer config params.
+converting to exe and  in github releases.
+couple cross platform transfer issues fixed.
+Made it more modular to impliment ble, usb, etc transfer methods, each transfer method is divided into its own module.
+Shows only Wifi, Ethernet interfaces.

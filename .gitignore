@@ -1,4 +1,5 @@
 received_files/
+Roadmap.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -173,4 +174,3 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-Roadmap.md

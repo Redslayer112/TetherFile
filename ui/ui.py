@@ -84,19 +84,41 @@ class CursesUI:
             self.stdscr.attroff(curses.A_BOLD)
 
     def draw_progress_bar(self, y, x, width, progress, title="", color='info'):
-        filled = int(progress * (width - 2))
-        bar = "█" * filled + "░" * (width - 2 - filled)
+        """
+        Draw a progress bar at position (y, x).
+        
+        Args:
+            y, x   : Position to draw
+            width  : Total width of the bar including borders
+            progress : Float between 0.0 and 1.0
+            title  : Optional title drawn above the bar
+            color  : Color key from self.colors
+        """
+        # Clamp progress to [0, 1]
+        progress = max(0.0, min(1.0, progress))
 
+        # Ensure minimum width so percentage fits
+        if width < 6:
+            width = 6
+
+        inner_width = width - 2  # account for [ ]
+        filled = int(progress * inner_width)
+        bar = "█" * filled + "░" * (inner_width - filled)
+
+        # Draw title (if any)
+        if title:
+            self.stdscr.addstr(y - 1, x, title[:width])
+
+        # Draw bar
         self.stdscr.attron(self.colors[color])
         self.stdscr.addstr(y, x, f"[{bar}]")
         self.stdscr.attroff(self.colors[color])
 
-        if title:
-            self.stdscr.addstr(y - 1, x, title[:width])
-
+        # Draw percentage (right-aligned)
         percentage = f"{progress * 100:.1f}%"
-        perc_x = x + width - len(percentage)
+        perc_x = max(x + width - len(percentage), x + 1)  # avoid overlap
         self.stdscr.addstr(y, perc_x, percentage)
+
 
     def print_colored(self, y, x, text, color='normal', max_width=None):
         if max_width:
@@ -126,46 +148,92 @@ class CursesUI:
         return input_str
 
     def get_single_key(self, y, x, prompt, valid_keys=None, color='info'):
-        """Get a single keypress without requiring Enter"""
+        """
+        Get a single keypress without requiring Enter.
+
+        Args:
+            y, x       : Position to display the prompt
+            prompt     : Text to show before waiting for input
+            valid_keys : Optional list/set of accepted characters (printable ASCII only)
+            color      : Color key from self.colors
+        Returns:
+            str representing the key pressed, e.g. "a", "1", "ESC", "ENTER"
+        """
+        # Print prompt
         self.print_colored(y, x, prompt, color)
         self.stdscr.refresh()
-        
-        # Clear input buffer first
-        self.stdscr.timeout(10)
+
+        # --- Clear input buffer ---
+        self.stdscr.timeout(10)  # non-blocking
         while self.stdscr.getch() != -1:
             pass
-        self.stdscr.timeout(-1)  # Reset to blocking
-        
+        self.stdscr.timeout(-1)  # back to blocking
+
         while True:
             key = self.stdscr.getch()
-            
-            if key == -1:  # Timeout or error
-                continue
-            
-            # Convert to character if it's a regular key
-            if 32 <= key <= 126:  # Printable ASCII range
+            if key == -1:
+                continue  # shouldn't happen in blocking mode, but safe
+
+            # Printable ASCII
+            if 32 <= key <= 126:
                 char = chr(key)
-                
-                # If valid_keys specified, check if key is valid
                 if valid_keys is None or char in valid_keys:
                     return char
-            
-            # Handle special keys if needed (like Escape, etc.)
-            elif key == 27:  # Escape key
-                return 'ESC'
-            elif key == ord('\n') or key == ord('\r'):
-                return 'ENTER'
+                else:
+                    # Optional: give user feedback for invalid key
+                    curses.flash()
+                    continue
+
+            # Special keys
+            if key in (10, 13):      # Enter (LF or CR)
+                return "ENTER"
+            elif key == 27:          # Escape
+                return "ESC"
+            elif key in (curses.KEY_BACKSPACE, 127):
+                return "BACKSPACE"
+            elif key == curses.KEY_DC:
+                return "DELETE"
+            elif key == curses.KEY_UP:
+                return "UP"
+            elif key == curses.KEY_DOWN:
+                return "DOWN"
+            elif key == curses.KEY_LEFT:
+                return "LEFT"
+            elif key == curses.KEY_RIGHT:
+                return "RIGHT"
+            # (expand if you want TAB, F1..F12, etc.)
+
 
     def show_message(self, message, color='info', duration=2):
+        """
+        Display a temporary message at the bottom of the screen.
+
+        Args:
+            message  : Text to display
+            color    : Color key from self.colors
+            duration : Seconds to display (0 = persistent until cleared)
+        """
         msg_y = self.height - 3
-        # Clear the message line completely before displaying new message
+
+        # Clear the line before drawing
         self.stdscr.move(msg_y, 0)
         self.stdscr.clrtoeol()
-        self.print_colored(msg_y, 2, message, color)
+
+        # Truncate if message is wider than screen
+        max_width = self.width - 4
+        display_msg = message[:max_width]
+
+        # Print colored message
+        self.print_colored(msg_y, 2, display_msg, color)
         self.stdscr.refresh()
+
+        # Auto-clear after duration
         if duration > 0:
-            time.sleep(duration)
-            # Clear the message after displaying it
+            # Use non-blocking delay so UI doesn't freeze
+            end_time = time.time() + duration
+            while time.time() < end_time:
+                time.sleep(0.05)  # lightweight check loop
+
             self.stdscr.move(msg_y, 0)
             self.stdscr.clrtoeol()
             self.stdscr.refresh()
