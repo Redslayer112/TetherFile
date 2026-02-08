@@ -67,7 +67,7 @@ Below are a few practical presets you can drop in depending on what you care abo
 }
 ```
 
-### 🛡️ High-Reliability Transfer (Unstable / WAN)
+### 🛡️ High-Reliability Transfer (Unstable)
 #### Prioritizes correctness and resilience over speed.
 
 ```json
