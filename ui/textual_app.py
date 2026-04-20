@@ -6,6 +6,8 @@ from textual.widgets import Button, Footer, Header, Static
 class ModeSelectApp(App):
     """Textual-based connection mode selector."""
 
+    TITLE = "Tetherfile"
+
     CSS = """
     Screen {
         align: center middle;

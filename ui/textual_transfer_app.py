@@ -200,6 +200,8 @@ class _TextualTransferAdapter:
 
 
 class TetherFileTextualApp(App):
+    TITLE = "Tetherfile"
+
     CSS = """
     Screen {
         layout: vertical;
