@@ -24,7 +24,15 @@ def _scan_fs_paths(s: str) -> list[str]:
     paths: list[str] = []
     i = 0
     while i < len(s):
-        if s[i] == '/':
+        # Detect start of absolute path: '/' on Unix, or drive letter like 'C:\' on Windows
+        is_root = s[i] == '/'
+        is_drive = (
+            i + 2 < len(s)
+            and s[i].isalpha()
+            and s[i + 1] == ':'
+            and s[i + 2] in ('\\', '/')
+        )
+        if is_root or is_drive:
             best = None
             for j in range(len(s), i, -1):
                 if os.path.exists(s[i:j]):
@@ -34,7 +42,7 @@ def _scan_fs_paths(s: str) -> list[str]:
                 paths.append(best)
                 i += len(best)
             else:
-                # No existing path here; treat everything from this / onwards as
+                # No existing path here; treat everything onwards as
                 # one non-existent path (e.g. a new file being transferred).
                 paths.append(s[i:])
                 break
@@ -61,6 +69,9 @@ def _extract_latest_path(raw: str) -> str:
     if raw.startswith("file://"):
         from urllib.parse import unquote, urlparse
         path = unquote(urlparse(raw.splitlines()[0].strip()).path)
+        # On Windows, urlparse gives '/D:/...' — strip the leading '/'.
+        if os.name == 'nt' and len(path) > 2 and path[0] == '/' and path[2] == ':':
+            path = path[1:]
         if path:
             return os.path.normpath(path)
 
@@ -70,7 +81,8 @@ def _extract_latest_path(raw: str) -> str:
     for m in re.finditer(
         r"'([^']+)'"                    # single-quoted  → group 1
         r'|"([^"]+)"'                   # double-quoted  → group 2
-        r'|(/(?:[^\s\'"\\]|\\.)+)',     # unquoted /path → group 3
+        r'|(/(?:[^\s\'"\\]|\\.)+)'      # unquoted /path → group 3
+        r'|([A-Za-z]:[\\][^\s\'"]*)',    # Windows drive  → group 4
         raw,
     ):
         if m.group(1) is not None:
@@ -79,24 +91,24 @@ def _extract_latest_path(raw: str) -> str:
             found.append((m.end(), m.group(2)))
         elif m.group(3) is not None:
             found.append((m.end(), m.group(3).replace('\\ ', ' ')))
+        elif m.group(4) is not None:
+            found.append((m.end(), m.group(4)))
 
     if found:
         found.sort(key=lambda x: x[0])
         regex_best = os.path.normpath(found[-1][1])
-        # If the regex-extracted path exists, use it immediately.
-        if os.path.exists(regex_best):
-            return regex_best
 
-        # The regex may have fragmented an unquoted path with spaces.
-        # Try filesystem scan — only prefer it if it found a LONGER existing
-        # path (i.e. it successfully reassembled the fragments).
+        # The regex may have fragmented an unquoted path with spaces
+        # (e.g. 'D:\My Files\test.iso' → regex only captures 'D:\My').
+        # Always try filesystem scan to find a longer existing path.
         fs = _scan_fs_paths(raw)
         if fs:
             fs_best = os.path.normpath(fs[-1])
             if os.path.exists(fs_best) and len(fs_best) > len(regex_best):
                 return fs_best
 
-        # Regex result is the best we have (path may not exist yet).
+        # Regex result is the best we have (path may not exist yet,
+        # or fs scan didn't find anything longer).
         return regex_best
 
     # No regex matches — try filesystem scan as last resort.
@@ -122,7 +134,7 @@ class PathInput(Input):
             return
         candidate = _extract_latest_path(text)
         # If extraction yields an absolute path, replace the entire field.
-        if candidate.startswith('/'):
+        if os.path.isabs(candidate):
             # Guard against on_input_changed re-processing the clean value.
             self.app._updating_path = True
             try:
@@ -494,11 +506,13 @@ class TetherFileTextualApp(App):
         # so _extract_latest_path here always sees a clean single path.
         # We intercept regardless of focus so the Input never appends to old text.
         candidate = _extract_latest_path(text)
-        if candidate.startswith('/'):
+        if os.path.isabs(candidate):
             target_id = "lan_path" if self._active_mode == "lan" else "wan_path"
             self._updating_path = True
             try:
-                self.query_one(f"#{target_id}", Input).value = candidate
+                path_input = self.query_one(f"#{target_id}", Input)
+                path_input.value = candidate
+                path_input.cursor_position = len(candidate)
             finally:
                 self._updating_path = False
             event.stop()
