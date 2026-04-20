@@ -1,5 +1,10 @@
 received_files/
 Roadmap.md
+main.build/
+main.dist/
+tmp_wan_test/
+tmp_wan_dir_test/
+tmp_wan_verify2/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

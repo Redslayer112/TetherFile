@@ -1,6 +1,4 @@
 import socket
-import platform
-import json
 import sys
 
 try:
@@ -9,6 +7,10 @@ except ImportError:
     print("❌ Missing dependency: psutil")
     print("📦 Install with: pip install psutil")
     sys.exit(1)
+
+from core import CONFIG
+
+KEEPALIVE_ENABLE = CONFIG['KEEPALIVE_ENABLE']
 
 # -----------------------------------------------------------------------------
 # Internal cache (prevents repeated work, essentially free speed-up)
@@ -57,7 +59,7 @@ def get_all_network_interfaces():
                     continue
 
                 interfaces.append(
-                    (description, interface_name, ip, interface_name)
+                    (description, ip, interface_name)
                 )
 
     except Exception as e:
@@ -162,6 +164,9 @@ def validate_ip(ip):
 def create_socket(local_ip=None):
     """Create and configure a socket"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    if KEEPALIVE_ENABLE:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     if local_ip:
         sock.bind((local_ip, 0))
     return sock
@@ -171,6 +176,9 @@ def create_server_socket(local_ip, port):
     """Create and configure a server socket"""
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    if KEEPALIVE_ENABLE:
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
     if local_ip:
         server_socket.bind((local_ip, port))

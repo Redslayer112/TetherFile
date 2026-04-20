@@ -1,12 +1,11 @@
 import hashlib
 import os
 from pathlib import Path
-import json
 import shutil
 import re
 import unicodedata
+from core import CONFIG
 
-CONFIG = json.load(open('config.json'))
 HASH_CHUNK_SIZE = CONFIG['HASH_CHUNK_SIZE']
 HASH_ALGORITHM = CONFIG['HASH_ALGORITHM']
 
@@ -96,6 +95,21 @@ def calculate_file_hash(filepath):
     return hash_func.hexdigest()
 
 
+def get_hash_digest_size(algorithm=None):
+    """Return raw digest byte length for the given (or configured) hash algorithm."""
+    algo = (algorithm or HASH_ALGORITHM)
+    return hashlib.new(algo).digest_size
+
+
+def exceeds_size_limit(size_bytes, limit_mb):
+    """Return True if size_bytes exceeds the configured cap.
+    A None / 0 / negative limit means unlimited.
+    """
+    if not limit_mb or limit_mb <= 0:
+        return False
+    return size_bytes > limit_mb * 1024 * 1024
+
+
 def format_size(size):
     """Convert a file size in bytes to a human-readable string"""
     if size <= 0:
@@ -125,6 +139,8 @@ def collect_directory_files(dir_path):
                 'size': size
             })
             total_size += size
+
+    files_info.sort(key=lambda item: item['path'])
     
     return files_info, total_size
 
@@ -174,47 +190,10 @@ def get_disk_usage(path):
         return None
 
 def ensure_directory(path):
-    """
-    Ensure directory exists, create if it doesn't.
-    Handles Windows path issues and permission errors.
-    """
+    """Ensure directory exists, create if it doesn't."""
     if not path:
         return
-        
-    try:
-        # Normalize the path for Windows
-        path = os.path.normpath(path)
-        
-        # Create directory if it doesn't exist
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-            
-        # Verify directory was created and is accessible
-        if not os.path.isdir(path):
-            raise OSError(f"Path exists but is not a directory: {path}")
-            
-        # Test write permissions
-        test_file = os.path.join(path, '.write_test')
-        try:
-            with open(test_file, 'w') as f:
-                f.write('test')
-            os.remove(test_file)
-        except (OSError, IOError) as e:
-            raise OSError(f"Directory not writable: {path} - {e}")
-            
-    except FileExistsError:
-        # Directory already exists, that's fine
-        pass
-    except OSError as e:
-        if e.errno == 3:  # "The system cannot find the path specified"
-            # Try to create parent directories first
-            parent = os.path.dirname(path)
-            if parent and parent != path:
-                ensure_directory(parent)
-                os.makedirs(path, exist_ok=True)
-            else:
-                raise OSError(f"Cannot create directory: {path} - {e}")
-        else:
-            raise OSError(f"Cannot create directory: {path} - {e}")
-    except Exception as e:
-        raise Exception(f"Unexpected error creating directory {path}: {e}")
+    path = os.path.normpath(path)
+    os.makedirs(path, exist_ok=True)
+    if not os.path.isdir(path):
+        raise OSError(f"Path exists but is not a directory: {path}")

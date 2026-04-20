@@ -1,6 +1,128 @@
-Different Hashing on client and server conditions case handeled.
-converted to using json for transfer config params.
-converting to exe and  in github releases.
-couple cross platform transfer issues fixed.
-Made it more modular to impliment ble, usb, etc transfer methods, each transfer method is divided into its own module.
-Shows only Wifi, Ethernet interfaces.
+TetherFile - Update Notes
+Comparison: last pushed code (origin/main @ a063779) -> current latest local code
+Date: 20-04-2026
+
+==================================================
+MAJOR UPDATES
+==================================================
+
+1) Full Textual UI Shift (curses/old UI removal)
+- Added new Textual apps:
+	- ui/textual_app.py
+	- ui/textual_transfer_app.py
+- Removed legacy UI module:
+	- ui/ui.py
+- New Textual transfer UI includes:
+	- LAN/WAN mode switching
+	- live transfer log panel
+	- integrated progress bar
+	- start/stop receiver controls
+	- copy-to-clipboard helpers for shareable IPs
+	- drag-and-drop/paste path handling with improved path extraction
+
+2) WAN Transfer Support Added
+- New WAN package introduced:
+	- transfers/wan/__init__.py
+	- transfers/wan/network.py
+	- transfers/wan/protocol.py
+	- transfers/wan/sender.py
+	- transfers/wan/receiver.py
+- WAN networking improvements include:
+	- IPv4/IPv6/hostname validation and resolution
+	- dual-stack server binding behavior
+	- shareable IPv6 discovery helpers (global/link-local)
+	- WAN socket tuning for throughput/reliability
+
+3) LAN Protocol/Transfer Refactor
+- Added protocol constants module:
+	- transfers/lan/protocol.py
+- Deleted old wrapper/unused transfer module:
+	- transfers/lan/transfer.py
+- Updated LAN sender/receiver/network flow to align with protocolized framing,
+	metadata ack/fail/mismatch flow, and improved transfer reliability.
+
+
+==================================================
+PERFORMANCE IMPROVEMENTS
+==================================================
+
+1) Single-pass streaming hash + transfer
+- Sender now streams file bytes and computes hash in the same pass.
+- Removed expensive pre-transfer full-file hash pass from hot path.
+
+2) Reduced allocation overhead in send/receive loop
+- Uses preallocated buffers and memoryview/readinto/recv_into patterns.
+- Lower GC pressure and improved throughput on large files.
+
+3) Progress update throttling improvements
+- Progress system updated to reduce excessive UI refresh calls.
+- Better behavior under high-speed transfers and large directory sends.
+
+4) WAN socket tuning
+- Socket buffer tuning and timeout-related improvements applied in WAN network layer.
+- Better stability/throughput over higher-latency links.
+
+
+==================================================
+RELIABILITY & BUG FIXES
+==================================================
+
+1) Metadata and transfer validation hardening
+- Improved metadata sanity checks and size guardrails.
+- Better error handling for malformed/incomplete metadata and timeout scenarios.
+
+2) Hash mismatch handling
+- Explicit mismatch signaling between sender/receiver.
+- Better UX messaging when algorithm mismatch occurs.
+
+3) Receiver loop behavior and shutdown handling
+- Cleaner stop/start receiver controls.
+- Reduced busy-loop behavior in server worker lifecycle.
+
+4) Safer path handling in UI input
+- Better extraction/normalization for pasted/dropped paths.
+- Improved handling for quoted paths, escaped spaces, file:// URIs, and concatenated drops.
+
+5) Directory receive safety
+- Better dedupe logic and safer destination handling.
+- Reduced risk of accidental destructive directory behavior.
+
+
+==================================================
+CONFIG / CORE CHANGES
+==================================================
+
+1) config.json updated
+- Added/updated networking and transfer tuning values used by LAN/WAN pathways.
+- Added settings supporting improved progress throttling and socket behavior.
+
+2) core updates
+- core/progress.py significantly updated for new UI/progress model.
+- core/utils.py extended with helpers used by protocol, hashing, validation, and sizing logic.
+- core/__init__.py and main.py adjusted to align startup flow with the latest architecture.
+
+
+==================================================
+CLEANUP / REMOVALS
+==================================================
+
+- Removed obsolete UI and transfer modules:
+	- ui/ui.py
+	- transfers/lan/transfer.py
+- Removed outdated USB readme:
+	- transfers/usb/Readme.md
+- Updated docs and project metadata:
+	- README.md
+	- .gitignore
+	- Updates.txt
+
+
+==================================================
+NOTES
+==================================================
+
+- This update is based on your current latest local code state relative to
+	the last pushed commit on origin/main.
+- Local untracked packaging/test artifacts are present in the workspace
+	(zip outputs and tmp folders), but they are not product feature changes.
+
